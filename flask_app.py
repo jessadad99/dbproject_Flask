@@ -156,203 +156,210 @@ class Functions():
         mySQL.delToy(tid)
         return 1
 
-app = Flask(__name__)
-app.config.from_pyfile('config.cfg')
-app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=5)
-mail = Mail(app)
+def startApp():
+    app = Flask(__name__)
+    app.config.from_pyfile('config.cfg')
+    app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=5)
+    mail = Mail(app)
 
-s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
-Func = Functions()
+    Func = Functions()
 
-@app.route('/')
-def index():
-    return redirect('/home')
-@app.route('/home')
-def home():
-    if request.method == 'GET':
-        try:
-            message = session['message']
-            whatshow = session['whatshow']
-        except Exception:
-            message = '0'
-            whatshow = '0'
-        try:
-            userdetail = session['userdetail']
-        except Exception:
-            userdetail = ['0',0]
-        session.clear()
-        search = request.args.get('search', default='', type=str)
-        toyList = Func.getToy(search)
-        return render_template('index.html', title='Home', message = message, whatshow = whatshow, userdetail = userdetail, ToyList = toyList)
-
-@app.route('/register', methods = ['POST'])
-def register():
-    if request.method == 'POST':
-        session.clear()
-        if (request.form['regpass1'] == request.form['regpass2']):
-            infoList = []
-            infoList.append(request.form['regemail'])
-            infoList.append(request.form['regpass1'])
-            infoList.append(request.form['regfname'])
-            infoList.append(request.form['regsname'])
-            infoList.append(request.form['regaddress'])
-            infoList.append(request.form['regtel'])
-            for i in range(len(infoList)):
-                if infoList[i] == '':
-                    session['messages'] = ['fail']
-                    session['whatshow'] = 'reg'
-                    return redirect('/home')
-            if Func.regUser(infoList) == 0:
-                session['message'] = 'regfail'
-                session['whatshow'] = 'reg'
-                return redirect('/home')
-
-            verifyMail(infoList[0])
-            return redirect('/home')
-
-@app.route('/login', methods = ['POST'])
-def login():
-    if request.method == 'POST':
-        detail = []
-        detail.append(request.form['logemail'])
-        detail.append(request.form['logpass'])
-        if detail[0] == 'ad@min.com' and detail[1] == 'admin':
-            session['userdetail'] = [detail[0],1]
-            return redirect('/stock')
-        result = Func.loginUser(detail)
-        if result[0] == 0:
-            session['userdetail'] = [detail[0],0]
-            return redirect('/verify')
-        elif result[0] == 1:
-            session['userdetail'] = [detail[0],1]
-            return redirect('/home')
-        else:
-            session['message'] = 'logfail'
-            session['whatshow'] = 'login'
-            return redirect('/home')
-    return 'FAILED'
-
-@app.route('/verify', methods = ['GET','POST'])
-def verifyPage():
-    try:
-        email = session['userdetail'][0]
-    except Exception:
-        return redirect('/home', code=302)
-    if request.method == 'GET':
-        return render_template('verify.html', verify = 'no', email = email, title = 'verify')
-
-    verifyMail(email)
-
-    return render_template('verify.html', verify='sent', title = 'verify')
-
-@app.route('/verify/<token>', methods = ['GET','POST'])
-def verifyToken(token):
-    try:
-        email = s.loads(token, salt='email-confirm', max_age=60)
-    except Exception:
-        return render_template('verify.html', verify='invalid', title = 'verify')
-    
-    Func.verifyMail(email)
-    return render_template('verify.html', verify='yes', title = 'verify')
-
-@app.route('/logout', methods = ['GET'])
-def logout():
-    if request.method == 'GET':
-        session.clear()
-        return redirect('/home', code=302)
-
-@app.route('/product/<tid>', methods= ['GET', 'POST'])
-def product(tid):
-    toyList = Func.getToy(tid)
-    try:
-            userdetail = session['userdetail']
-    except Exception:
-        userdetail = ['0',0]
-    if request.method == 'GET':
-        return render_template('product.html', ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
-
-    if request.method == 'POST':
-        if userdetail[0] == '0' and userdetail[1] == 0:
-            return render_template('product.html', whatshow='login', ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
-
-    return redirect('/home')
-
-# ADMIN
-@app.route('/stock', methods = ['GET', 'POST'])
-def stock():
-    try:
-        if request.method == 'GET' and session['userdetail'][0] == 'ad@min.com':
+    @app.route('/')
+    def index():
+        return redirect('/home')
+    @app.route('/home')
+    def home():
+        if request.method == 'GET':
+            try:
+                message = session['message']
+                whatshow = session['whatshow']
+            except Exception:
+                message = '0'
+                whatshow = '0'
+            try:
+                userdetail = session['userdetail']
+            except Exception:
+                userdetail = ['0',0]
+            session.clear()
             search = request.args.get('search', default='', type=str)
             toyList = Func.getToy(search)
-            userdetail = ['ad@min.com',1]
-            return render_template('stock.html', ToyList=toyList, title='admin', userdetail=userdetail)
-    except Exception:
+            return render_template('index.html', title='Home', message = message, whatshow = whatshow, userdetail = userdetail, ToyList = toyList)
+
+    @app.route('/register', methods = ['POST'])
+    def register():
+        if request.method == 'POST':
+            session.clear()
+            if (request.form['regpass1'] == request.form['regpass2']):
+                infoList = []
+                infoList.append(request.form['regemail'])
+                infoList.append(request.form['regpass1'])
+                infoList.append(request.form['regfname'])
+                infoList.append(request.form['regsname'])
+                infoList.append(request.form['regaddress'])
+                infoList.append(request.form['regtel'])
+                for i in range(len(infoList)):
+                    if infoList[i] == '':
+                        session['messages'] = ['fail']
+                        session['whatshow'] = 'reg'
+                        return redirect('/home')
+                if Func.regUser(infoList) == 0:
+                    session['message'] = 'regfail'
+                    session['whatshow'] = 'reg'
+                    return redirect('/home')
+
+                verifyMail(infoList[0])
+                return redirect('/home')
+
+    @app.route('/login', methods = ['POST'])
+    def login():
+        if request.method == 'POST':
+            detail = []
+            detail.append(request.form['logemail'])
+            detail.append(request.form['logpass'])
+            if detail[0] == 'ad@min.com' and detail[1] == 'admin':
+                session['userdetail'] = [detail[0],1]
+                return redirect('/stock')
+            result = Func.loginUser(detail)
+            if result[0] == 0:
+                session['userdetail'] = [detail[0],0]
+                return redirect('/verify')
+            elif result[0] == 1:
+                session['userdetail'] = [detail[0],1]
+                return redirect('/home')
+            else:
+                session['message'] = 'logfail'
+                session['whatshow'] = 'login'
+                return redirect('/home')
+        return 'FAILED'
+
+    @app.route('/verify', methods = ['GET','POST'])
+    def verifyPage():
+        try:
+            email = session['userdetail'][0]
+        except Exception:
+            return redirect('/home', code=302)
+        if request.method == 'GET':
+            return render_template('verify.html', verify = 'no', email = email, title = 'verify')
+
+        verifyMail(email)
+
+        return render_template('verify.html', verify='sent', title = 'verify')
+
+    @app.route('/verify/<token>', methods = ['GET','POST'])
+    def verifyToken(token):
+        try:
+            email = s.loads(token, salt='email-confirm', max_age=60)
+        except Exception:
+            return render_template('verify.html', verify='invalid', title = 'verify')
+        
+        Func.verifyMail(email)
+        return render_template('verify.html', verify='yes', title = 'verify')
+
+    @app.route('/logout', methods = ['GET'])
+    def logout():
+        if request.method == 'GET':
+            session.clear()
+            return redirect('/home', code=302)
+
+    @app.route('/product/<tid>', methods= ['GET', 'POST'])
+    def product(tid):
+        toyList = Func.getToy(tid)
+        try:
+                userdetail = session['userdetail']
+        except Exception:
+            userdetail = ['0',0]
+        if request.method == 'GET':
+            return render_template('product.html', ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
+
+        if request.method == 'POST':
+            if userdetail[0] == '0' and userdetail[1] == 0:
+                return render_template('product.html', whatshow='login', ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
+
         return redirect('/home')
 
-@app.route('/stock/add', methods = ['POST'])
-def addstock():
-    if session['userdetail'][0] == 'ad@min.com':
-        Tinfo = []
-        Tinfo.append(request.form['addName'])
-        Tinfo.append(request.form['addSize'])
-        Tinfo.append(request.form['addMaterial'])
-        Tinfo.append(request.form['addBrand'])
-        Tinfo.append(request.form['addSubject'])
-        Tinfo.append(request.form['addCollection'])
-        Tinfo.append(request.form['addPrice'])
-        Tinfo.append(request.form['addAmount'])
-        img = request.files['imgFile']
-        imgread = img.read()
-        Tinfo.append(imgread)
-        Func.addToy(Tinfo)
-        return redirect('/stock')
-    return redirect('/')
+    # ADMIN
+    @app.route('/stock', methods = ['GET', 'POST'])
+    def stock():
+        try:
+            if request.method == 'GET' and session['userdetail'][0] == 'ad@min.com':
+                search = request.args.get('search', default='', type=str)
+                toyList = Func.getToy(search)
+                userdetail = ['ad@min.com',1]
+                return render_template('stock.html', ToyList=toyList, title='admin', userdetail=userdetail)
+        except Exception:
+            return redirect('/home')
 
-@app.route('/stock/update/<tid>', methods = ['POST'])
-def updatestock(tid):
-    if session['userdetail'][0] == 'ad@min.com':
-        Tinfo = []
-        Tinfo.append(tid)
-        Tinfo.append(request.form['editName'])
-        Tinfo.append(request.form['editSize'])
-        Tinfo.append(request.form['editMaterial'])
-        Tinfo.append(request.form['editBrand'])
-        Tinfo.append(request.form['editSubject'])
-        Tinfo.append(request.form['editCollection'])
-        Tinfo.append(request.form['editPrice'])
-        Tinfo.append(request.form['editAmount'])
-        Func.updateToy(Tinfo)
-        return redirect('/stock')
-    return redirect('/')
+    @app.route('/stock/add', methods = ['POST'])
+    def addstock():
+        if session['userdetail'][0] == 'ad@min.com':
+            Tinfo = []
+            Tinfo.append(request.form['addName'])
+            Tinfo.append(request.form['addSize'])
+            Tinfo.append(request.form['addMaterial'])
+            Tinfo.append(request.form['addBrand'])
+            Tinfo.append(request.form['addSubject'])
+            Tinfo.append(request.form['addCollection'])
+            Tinfo.append(request.form['addPrice'])
+            Tinfo.append(request.form['addAmount'])
+            img = request.files['imgFile']
+            imgread = img.read()
+            Tinfo.append(imgread)
+            Func.addToy(Tinfo)
+            return redirect('/stock')
+        return redirect('/')
 
-@app.route('/stock/del/<tid>')
-def delstock(tid):
-    if session['userdetail'][0] == 'ad@min.com':
-        Func.delToy(tid)
-        return redirect('/stock')
-    return redirect('/')
+    @app.route('/stock/update/<tid>', methods = ['POST'])
+    def updatestock(tid):
+        if session['userdetail'][0] == 'ad@min.com':
+            Tinfo = []
+            Tinfo.append(tid)
+            Tinfo.append(request.form['editName'])
+            Tinfo.append(request.form['editSize'])
+            Tinfo.append(request.form['editMaterial'])
+            Tinfo.append(request.form['editBrand'])
+            Tinfo.append(request.form['editSubject'])
+            Tinfo.append(request.form['editCollection'])
+            Tinfo.append(request.form['editPrice'])
+            Tinfo.append(request.form['editAmount'])
+            Func.updateToy(Tinfo)
+            return redirect('/stock')
+        return redirect('/')
 
-def verifyMail(email):
-    token = s.dumps(email, salt='email-confirm')
+    @app.route('/stock/del/<tid>')
+    def delstock(tid):
+        if session['userdetail'][0] == 'ad@min.com':
+            Func.delToy(tid)
+            return redirect('/stock')
+        return redirect('/')
 
-    link = url_for('verifyToken', token=token, _external=True)
+    def verifyMail(email):
+        token = s.dumps(email, salt='email-confirm')
 
-    sent = threading.Thread(target=sendVerify, args=(email, link,))
-    sent.start()
-    return 1
+        link = url_for('verifyToken', token=token, _external=True)
 
-def sendVerify(email, link):
-    msg = Message('Confirm Email', sender=('Carstore Service', "service@dbproject_carstore.com"), recipients=[email])
+        sent = threading.Thread(target=sendVerify, args=(email, link,))
+        sent.start()
+        return 1
 
-    assert msg.sender == "Carstore Service <service@dbproject_carstore.com>"
+    def sendVerify(email, link):
+        msg = Message('Confirm Email', sender=('Carstore Service', "service@dbproject_carstore.com"), recipients=[email])
 
-    msg.body = 'Confirm Your Email'
+        assert msg.sender == "Carstore Service <service@dbproject_carstore.com>"
 
-    msg.html = '<form action="{0}"><input type="submit" value="Verify" formtarget="_blank"></form>'.format(link)
+        msg.body = 'Confirm Your Email'
 
-    with app.app_context():
-        mail.send(msg)
-        print("Sent")
-    return True
+        msg.html = '<form action="{0}"><input type="submit" value="Verify" formtarget="_blank"></form>'.format(link)
 
+        with app.app_context():
+            mail.send(msg)
+            print("Sent")
+        return True
+
+    return app
+
+app = startApp()
+
+if __name__ == "__main__":
+    app.run(debug=True)
