@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block content %}
+
+        <div class="modal-dialog">
+			<div class="modal-content">
+				{% if verify == 'no' %}
+					<form role="form" action="/verify" method="POST">
+						<h1 class="text-center">Hi {{ email }}</h1>
+						<h4 class="text-center">Please Verify Your Email by Clicking the Link that sent to your email</h4>
+						<div><button type="submit" class="btn btn-primary btn-block">Resend Verify Email</button></div>
+					</form>
+				{% elif verify == 'sent' %}
+					<form role="form" action="/home" method="GET">
+						<h1 class="text-center">Email has been sent</h1>
+						<div><button type="submit" class="btn btn-primary btn-block">Home</button></div>
+					</form>
+				{% elif verify == 'yes' %}
+					<form role="form" action="/home" method="GET">
+						<h1 class="text-center" style="color: green">Your Email has been Verified</h1>
+						<div><button type="submit" class="btn btn-primary btn-block">Home</button></div>
+					</form>
+				{% else %}
+					<form role="form" action="/home" method="GET">
+						<h1 class="text-center" style="color: red">Invalid Verify Link</h1>
+						<div><button type="submit" class="btn btn-primary btn-block">Home</button></div>
+					</form>
+				{% endif %}
+			</div>
+		</div>
+		
+{% endblock content %}

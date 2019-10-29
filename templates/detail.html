@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+{% block content %}
+        <div class="modal-header">
+            <div class="row align-item-center">
+                <div class="col-sm-2 text-right">
+                    <a href="./index.html" class="btn">The Toy</a>
+                </div>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" placeholder="SEARCH"/>
+                </div>
+                <div class="col-sm-2">
+                    <button class="btn btn-primary" data-toggle="modal" data-target="#popUpWindow">Log out</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <h2>Stock<a href="" class="pull-right btn btn-primary glyphicon glyphicon-plus"></a></h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="col-sm-1">ID</th>
+                        <th class="col-sm-4">Name</th>
+                        <th class="col-sm-2">Picture</th>
+                        <th class="col-sm-2">Price</th>
+                        <th class="col-sm-2">Amount</th>
+                        <th class="col-sm-1">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>001</td>
+                        <td>Iron man</td>
+                        <td>Pic</td>
+                        <td>3000</td>
+                        <td>50</td>
+                        <td>
+                            <a href="" class="glyphicon glyphicon-cog" data-toggle="modal" data-target="#editPopup"></a>
+                            <a href="" class="glyphicon glyphicon-trash"></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Edit popup -->
+        <div class="modal fade" id="editPopup">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                        <div class="modal-header text-center">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h2>Edit</h2>
+                        </div>
+                        <!-- body -->
+                        <div class="modal-header">
+                            <form role="form">
+                                <div class="form-group">
+                                    <label>ID</label><input class="form-control" value="001"/>
+                                    <label>Name</label><input class="form-control" value="Iron man" />
+                                    <label>Price</label><input class="form-control" value="3000" />
+                                    <label>Amount</label><input class="form-control" value="50" />
+                                </div>
+                                
+                                <div><button type="submit" class="btn btn-primary btn-block">Register</button></div>
+                            </form>
+                        </div>
+                </div>
+            </div>
+        </div>
+{% endblock content %}
