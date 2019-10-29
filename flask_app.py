@@ -176,6 +176,7 @@ def startApp():
             try:
                 message = session['message']
                 whatshow = session['whatshow']
+                session.clear()
             except Exception:
                 message = '0'
                 whatshow = '0'
@@ -183,7 +184,7 @@ def startApp():
                 userdetail = session['userdetail']
             except Exception:
                 userdetail = ['0',0]
-            session.clear()
+            
             search = request.args.get('search', default='', type=str)
             toyList = Func.getToy(search)
             return render_template('index.html', title='Home', message = message, whatshow = whatshow, userdetail = userdetail, ToyList = toyList)
