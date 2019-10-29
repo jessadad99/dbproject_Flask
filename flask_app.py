@@ -9,10 +9,9 @@ import pymysql
 import threading
 
 
-#us-cdbr-iron-east-05.cleardb.net
 class SQL():
     def __init__(self):
-        self.connections = pymysql.connect(host='localhost',
+        self.connections = pymysql.connect(host='us-cdbr-iron-east-05.cleardb.net',
                                            user='b2010704c8097f',
                                            password='15c8326c',
                                            db='heroku_067ee230eac21e3',
