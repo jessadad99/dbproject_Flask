@@ -172,8 +172,9 @@ class Functions():
         self.mySQL.reConnect()
 
     def runSchedule(self):
-        schedule.run_pending()
-        time.sleep(1)
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
 
 def startApp():
     app = Flask(__name__)
