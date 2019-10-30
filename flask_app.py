@@ -184,7 +184,7 @@ def startApp():
     s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
     Func = Functions()
-    schedule.every().hour.do(Func.reConnect)
+    schedule.every().minute.do(Func.reConnect)
     
     sch = threading.Thread(target=Func.runSchedule)
     sch.start()
