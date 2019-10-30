@@ -1,1 +1,1 @@
-web: gunicorn flask_app:app -w 4
+web: gunicorn --workers=5 --threads=2 --worker-class=gthread flask_app:app
