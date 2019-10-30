@@ -7,6 +7,8 @@ from base64 import b64encode
 import secrets
 import pymysql
 import threading
+import schedule
+import time
 
 
 class SQL():
@@ -17,35 +19,29 @@ class SQL():
                                            db='heroku_067ee230eac21e3',
                                            charset='utf8mb4',
                                            cursorclass=pymysql.cursors.DictCursor)
+  
     def regUser(self, infoList):
-        try:
-            with self.connections.cursor() as cur:
-                sqlQuery = 'CALL AddUser(%s,%s,%s,%s,%s,%s)'
-                cur.execute(sqlQuery,(infoList[0],infoList[1],infoList[2],infoList[3],infoList[4],infoList[5],))
-            self.connections.commit()
-            print('added')
-        finally:
-            self.connections.close()
+        with self.connections.cursor() as cur:
+            sqlQuery = 'CALL AddUser(%s,%s,%s,%s,%s,%s)'
+            cur.execute(sqlQuery,(infoList[0],infoList[1],infoList[2],infoList[3],infoList[4],infoList[5],))
+        self.connections.commit()
+        print('added')
 
     def loginUser(self, email):
         password = {'password':'','isconfirm':0}
-        try:
-            with self.connections.cursor() as cur:
-                sqlQuery = "SELECT password, isconfirm FROM accountdata WHERE email=%s"
-                cur.execute(sqlQuery, (email,)) 
-                password = cur.fetchone()
-            self.connections.commit()
-        finally:
-            self.connections.close()
+
+        with self.connections.cursor() as cur:
+            sqlQuery = "SELECT password, isconfirm FROM accountdata WHERE email=%s"
+            cur.execute(sqlQuery, (email,)) 
+            password = cur.fetchone()
+        self.connections.commit()
+
         return password
 
     def delUser(self, email):
-        try:
-            with self.connections.cursor() as cur:
-                cur.execute('CALL DelUser("{0}")'.format(email))
-            self.connections.commit()
-        finally:
-            self.connections.close()
+        with self.connections.cursor() as cur:
+            cur.execute('CALL DelUser("{0}")'.format(email))
+        self.connections.commit()
 
     def checkregisted(self, email):
         with self.connections.cursor() as cur:
@@ -54,93 +50,102 @@ class SQL():
             return count['COUNT(email)']
 
     def verifyMail(self, email):
-        try:
-            with self.connections.cursor() as cur:
-                cur.execute('CALL Confirmed("{0}")'.format(email))
-            self.connections.commit()
-        finally:
-            self.connections.close()
+        with self.connections.cursor() as cur:
+            cur.execute('CALL Confirmed("{0}")'.format(email))
+        self.connections.commit()
 
     def addToy(self, Tinfo):
-        try:
-            with self.connections.cursor() as cur:
-                sqlQuery = "CALL AddToy(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                cur.execute(sqlQuery, (Tinfo[0],Tinfo[1],Tinfo[2],Tinfo[3],Tinfo[4],Tinfo[5],Tinfo[6],Tinfo[7],Tinfo[8],)) 
-            self.connections.commit()
-        finally:
-            self.connections.close()
+        with self.connections.cursor() as cur:
+            sqlQuery = "CALL AddToy(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            cur.execute(sqlQuery, (Tinfo[0],Tinfo[1],Tinfo[2],Tinfo[3],Tinfo[4],Tinfo[5],Tinfo[6],Tinfo[7],Tinfo[8],)) 
+        self.connections.commit()
 
     def getToy(self, search):
-        try:
-            search = '%{0}%'.format(search)
-            with self.connections.cursor() as cur:
-                sqlQuery = "SELECT toydata.*, toyimage.image FROM toydata INNER JOIN toyimage WHERE toydata.tid LIKE %s or toydata.name LIKE %s or toydata.`from` LIKE %s"
-                cur.execute(sqlQuery, (search, search, search,))
-                toylist = cur.fetchall()
-            self.connections.commit()
-        finally:
-            self.connections.close()
+        search = '%{0}%'.format(search)
+        with self.connections.cursor() as cur:
+            sqlQuery = "SELECT toydata.*, toyimage.image FROM toydata INNER JOIN toyimage WHERE toydata.tid LIKE %s or toydata.name LIKE %s or toydata.`from` LIKE %s"
+            cur.execute(sqlQuery, (search, search, search,))
+            toylist = cur.fetchall()
+        self.connections.commit()
         return toylist
 
     def updateToy(self, Tinfo):
-        try:
-            with self.connections.cursor() as cur:
-                sqlQuery = "CALL UpdateToy(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                cur.execute(sqlQuery, (Tinfo[0],Tinfo[1],Tinfo[2],Tinfo[3],Tinfo[4],Tinfo[5],Tinfo[6],Tinfo[7],Tinfo[8],)) 
-            self.connections.commit()
-        finally:
-            self.connections.close()
+        with self.connections.cursor() as cur:
+            sqlQuery = "CALL UpdateToy(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            cur.execute(sqlQuery, (Tinfo[0],Tinfo[1],Tinfo[2],Tinfo[3],Tinfo[4],Tinfo[5],Tinfo[6],Tinfo[7],Tinfo[8],)) 
+        self.connections.commit()
 
     def delToy(self, tid):
-        try:
-            with self.connections.cursor() as cur:
-                sqlQuery = "CALL DelToy(%s)"
-                cur.execute(sqlQuery, (tid,)) 
-            self.connections.commit()
-        finally:
-            self.connections.close()
+        with self.connections.cursor() as cur:
+            sqlQuery = "CALL DelToy(%s)"
+            cur.execute(sqlQuery, (tid,)) 
+        self.connections.commit()
+
+    def buyToy(self, email, tid, amount):
+        with self.connections.cursor() as cur:
+            sqlQuery = "CALL BuyToy(%s,%s,%s)"
+            cur.execute(sqlQuery, (email,tid,amount,)) 
+        self.connections.commit()
+
+    def reConnect(self):
+        self.connections.close()
+        self.connections = pymysql.connect(host='us-cdbr-iron-east-05.cleardb.net',
+                                           user='b2010704c8097f',
+                                           password='15c8326c',
+                                           db='heroku_067ee230eac21e3',
+                                           charset='utf8mb4',
+                                           cursorclass=pymysql.cursors.DictCursor)
 
 class Functions():
     def __init__(self):
         self.passSalt = 'this is pass salt'
+        self.mySQL = SQL()
 
     def regUser(self, infoList):
-        mySQL = SQL()
+        # mySQL = SQL()
+        self.reConnect()
         pwnPasswd = sha256_crypt.hash(infoList[1]+self.passSalt)
         for i in range(len(infoList)):
             if infoList[i] == '':
                 print('has space')
                 return 0
-        if mySQL.checkregisted(infoList[0]) == 0:
+        if self.mySQL.checkregisted(infoList[0]) == 0:
             infoList[1] = pwnPasswd
-            mySQL.regUser(infoList)
+            self.mySQL.regUser(infoList)
             return 1
         print('other')
         return 0
 
     def loginUser(self, infoList):
-        mySQL = SQL()
+        # mySQL = SQL()
+        self.reConnect()
         for i in range(len(infoList)):
             if infoList[i] == '':
                 return 2,0
-        pwnPass = mySQL.loginUser(infoList[0])
-        if sha256_crypt.verify(infoList[1]+self.passSalt, pwnPass['password']):
-            return pwnPass['isconfirm'], pwnPass['password']
-        return 2, 0
+        pwnPass = self.mySQL.loginUser(infoList[0])
+        try:
+            if sha256_crypt.verify(infoList[1]+self.passSalt, pwnPass['password']):
+                return pwnPass['isconfirm'], pwnPass['password']
+        except Exception:
+            return 2, 0
 
     def verifyMail(self, email):
-        mySQL = SQL()
-        mySQL.verifyMail(email)
+        # mySQL = SQL()
+        self.reConnect()
+        self.mySQL.verifyMail(email)
         return 1
 
     def addToy(self, Tinfo):
-        mySQL = SQL()
-        mySQL.addToy(Tinfo)
+        # mySQL = SQL()
+        self.reConnect()
+        self.mySQL.addToy(Tinfo)
         return 1
 
     def getToy(self, search):
-        mySQL = SQL()
-        rawList = mySQL.getToy(search)
+        if search != '':
+            self.reConnect()
+        # mySQL = SQL()
+        rawList = self.mySQL.getToy(search)
         outList = {}
         for i in range(len(rawList)):
             rawList[i]['image'] = b64encode(rawList[i]['image']).decode('utf-8')
@@ -148,14 +153,29 @@ class Functions():
         return outList
 
     def updateToy(self, Tinfo):
-        mySQL = SQL()
-        mySQL.updateToy(Tinfo)
+        # mySQL = SQL()
+        self.reConnect()
+        self.mySQL.updateToy(Tinfo)
         return 1
 
     def delToy(self, tid):
-        mySQL = SQL()
-        mySQL.delToy(tid)
+        # mySQL = SQL()
+        self.reConnect()
+        self.mySQL.delToy(tid)
         return 1
+
+    def buyToy(self,email,tid,amount):
+        self.reConnect()
+        self.mySQL.buyToy(email, tid, amount)
+        return 1
+
+    def reConnect(self):
+        self.mySQL.reConnect()
+
+    def runSchedule(self):
+        print('Schedule Running')
+        schedule.run_pending()
+        time.sleep(1)
 
 def startApp():
     app = Flask(__name__)
@@ -166,6 +186,10 @@ def startApp():
     s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
     Func = Functions()
+    schedule.every().hour.do(Func.reConnect)
+    
+    sch = threading.Thread(target=Func.runSchedule)
+    sch.start()
 
     @app.route('/')
     def index():
@@ -184,7 +208,6 @@ def startApp():
                 userdetail = session['userdetail']
             except Exception:
                 userdetail = ['0',0]
-            
             search = request.args.get('search', default='', type=str)
             toyList = Func.getToy(search)
             return render_template('index.html', title='Home', message = message, whatshow = whatshow, userdetail = userdetail, ToyList = toyList)
@@ -269,17 +292,32 @@ def startApp():
     def product(tid):
         toyList = Func.getToy(tid)
         try:
-                userdetail = session['userdetail']
+            userdetail = session['userdetail']
         except Exception:
             userdetail = ['0',0]
         if request.method == 'GET':
-            return render_template('product.html', ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
+            try:
+                isbuy = session['isbuy']
+                Func.reConnect()
+            except:
+                isbuy = [False,0]
+            return render_template('product.html', isbuy=isbuy[0], amount=isbuy[1], ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
 
         if request.method == 'POST':
             if userdetail[0] == '0' and userdetail[1] == 0:
                 return render_template('product.html', whatshow='login', ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
+            else:
+                amount = int(request.form['buyamount'])
+                if toyList[tid]['amount'] < amount:
+                    return render_template('product.html', amounterror=True, ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
+                else:
+                    Func.buyToy(userdetail[0], tid, amount)
+                    session['isbuy'] = [True,amount]
+                    return redirect('/product/{0}'.format(tid),code=302)
 
         return redirect('/home')
+            
+        
 
     # ADMIN
     @app.route('/stock', methods = ['GET', 'POST'])

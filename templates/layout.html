@@ -72,7 +72,7 @@
                         </div>
                         <!-- body -->
                         <div class="modal-header">
-                            <form role="form" action="/register" method="POST">
+                            <form id="regform" role="form" action="/register" method="POST">
                                 <div class="form-group">
                                     <label>Email</label>
                                     <input name="regemail" type="email" class="form-control" placeholder="Email"/>                          
@@ -95,12 +95,19 @@
                                         <p style="color: red">Something Went Wrong.</p>
                                     </div>
                                 {% endif %}
-                                <div><button type="submit" class="btn btn-primary btn-block">Register</button></div>
+                                <div><button id="regsubmit" type="submit" class="btn btn-primary btn-block">Register</button></div>
                             </form>
                         </div>
                 </div>
             </div>
         </div>
+        <script>
+                $('#regsubmit').on('click',function(){
+                    $(this).val('Please wait ...')
+                    .attr('disabled','disabled');
+                    $('#regform').submit();
+                });
+        </script>
         {% if whatshow == 'reg' %}
             <script type="text/javascript">
                 $(window).on('load',function(){
@@ -120,7 +127,7 @@
                     </div>
                     <!-- body -->
                     <div class="modal-header">
-                        <form role="form" action="/login" method="POST">
+                        <form id="loginform" role="form" action="/login" method="POST">
                             <div class="form-group"><input name="logemail" type="email" class="form-control" placeholder="Email"/></div>
                             <div class="form-group"><input name="logpass" type="password" class="form-control" placeholder="Password" /></div>
                             {% if message == 'logfail' %}
@@ -128,13 +135,20 @@
                                     <p style="color: red">Incorrect email or password.</p>
                                 </div>
                             {% endif %}
-                            <div class="form-group"><button type="submit" class="btn btn-primary btn-block">Log In</button></div>
+                            <div class="form-group"><button id="loginsubmit" type="submit" class="btn btn-primary btn-block">Log In</button></div>
                         </form>
                         <a href="" class="pull-right text-muted">Forgot password?</a>
                     </div>
                 </div>
             </div>
         </div>
+        <script>
+                $('#loginsubmit').on('click',function(){
+                    $(this).val('Please wait ...')
+                    .attr('disabled','disabled');
+                    $('#loginform').submit();
+                });
+        </script>
         {% if whatshow == 'login' %}
             <script type="text/javascript">
                 $(window).on('load',function(){
