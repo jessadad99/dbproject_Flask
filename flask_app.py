@@ -303,7 +303,9 @@ def startApp():
 
         # if request.method == 'POST':
         if userdetail[0] == '0' and userdetail[1] == 0:
-            return render_template('product.html', whatshow='login', ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
+            session['message'] = ''
+            session['whatshow'] = 'login'
+            return redirect('/home',code=302)
         else:
             amount = int(request.form['buyamount'])
             if toyList[tid]['amount'] < amount:
