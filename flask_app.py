@@ -301,17 +301,17 @@ def startApp():
                 isbuy = [False,0]
             return render_template('product.html', isbuy=isbuy[0], amount=isbuy[1], ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
 
-        if request.method == 'POST':
-            if userdetail[0] == '0' and userdetail[1] == 0:
-                return render_template('product.html', whatshow='login', ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
+        # if request.method == 'POST':
+        if userdetail[0] == '0' and userdetail[1] == 0:
+            return render_template('product.html', whatshow='login', ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
+        else:
+            amount = int(request.form['buyamount'])
+            if toyList[tid]['amount'] < amount:
+                return render_template('product.html', amounterror=True, ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
             else:
-                amount = int(request.form['buyamount'])
-                if toyList[tid]['amount'] < amount:
-                    return render_template('product.html', amounterror=True, ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
-                else:
-                    Func.buyToy(userdetail[0], tid, amount)
-                    session['isbuy'] = [True,amount]
-                    return redirect('/product/{0}'.format(tid),code=302)
+                Func.buyToy(userdetail[0], tid, amount)
+                session['isbuy'] = [True,amount]
+                return redirect('/product/{0}'.format(tid),code=302)
 
         return redirect('/home')
             
