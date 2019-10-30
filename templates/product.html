@@ -2,17 +2,36 @@
 {% block content %}
 
         <!-- Product detail -->
+        {% if amounterror == True %}
+            <script>
+                alert("Error!! Somthing Went Wrong.");
+            </script>
+        {% endif %}
+        {% if isbuy == True %}
+            <script>
+                alert("Congreatulations!! You bought {{ ToyList['name'] }} for {{ amount }}.");
+            </script>
+        {% endif %}
         <div class="container">
             <div class="modal-header">
                 <div class="row">
                     <div class="col-sm-8"><img src="data:image/png;base64,{{ ToyList['image'] }}" alt="{{ ToyList['name'] }}" width="500" height="500"></div>
                     <div class="col-sm-4">
-                        <div class="row"><h2>{{ ToyList['name'] }}</h2></div>
-                        <div class="row"><h2>{{ '฿%.2f'%ToyList['price'] }}</h2></div>
-                        <div class="row"><input type="number" value="1" min="1" max="1000" step="1"/></div><br>
-                        <div class="row"><input type="submit" class="btn btn-primary"></div>
+                        <form id="buyform" action="/product/{{ ToyList['tid'] }}" method="POST">
+                            <div class="row"><h2>{{ ToyList['name'] }}</h2></div>
+                            <div class="row"><h2>{{ '฿%.2f'%ToyList['price'] }}</h2></div>
+                            <div class="row"><input name="buyamount" type="number" value="1" min="1" max="1000" step="1"/></div><br>
+                            <div class="row"></form><input type="submit" id="buysubmit" class="btn btn-primary" value="Buy"></div>
+                        </form>
                     </div>
                 </div>
+                <script>
+                    $('#buysubmit').on('click',function(){
+                        $(this).val('Please wait ...')
+                        .attr('disabled','disabled');
+                        $('#buyform').submit();
+                    });
+                </script>
                 {% for key,value in ToyList.items() %}
                     {% if key != 'tid' and key != 'image' %}
                     <div class="row">
