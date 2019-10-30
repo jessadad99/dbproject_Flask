@@ -172,7 +172,6 @@ class Functions():
         self.mySQL.reConnect()
 
     def runSchedule(self):
-        print('Schedule Running')
         schedule.run_pending()
         time.sleep(1)
 
@@ -401,4 +400,4 @@ def startApp():
 app = startApp()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
