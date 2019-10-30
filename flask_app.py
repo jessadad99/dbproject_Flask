@@ -10,7 +10,6 @@ import threading
 import schedule
 import time
 
-
 class SQL():
     def __init__(self):
         self.connections = pymysql.connect(host='us-cdbr-iron-east-05.cleardb.net',
