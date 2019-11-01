@@ -225,7 +225,7 @@ def startApp():
                 infoList.append(request.form['regtel'])
                 for i in range(len(infoList)):
                     if infoList[i] == '':
-                        session['messages'] = ['fail']
+                        session['message'] = ['fail']
                         session['whatshow'] = 'reg'
                         return redirect('/home')
                 if Func.regUser(infoList) == 0:
