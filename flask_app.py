@@ -4,6 +4,7 @@ from itsdangerous import URLSafeTimedSerializer
 from datetime import timedelta
 from passlib.hash import sha256_crypt
 from base64 import b64encode
+import datetime
 import secrets
 import pymysql
 import threading
@@ -55,8 +56,8 @@ class SQL():
 
     def addToy(self, Tinfo):
         with self.connections.cursor() as cur:
-            sqlQuery = "CALL AddToy(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-            cur.execute(sqlQuery, (Tinfo[0],Tinfo[1],Tinfo[2],Tinfo[3],Tinfo[4],Tinfo[5],Tinfo[6],Tinfo[7],Tinfo[8],)) 
+            sqlQuery = "CALL AddToy(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            cur.execute(sqlQuery, (Tinfo[0],Tinfo[1],Tinfo[2],Tinfo[3],Tinfo[4],Tinfo[5],Tinfo[6],Tinfo[7],Tinfo[8],Tinfo[9],)) 
         self.connections.commit()
 
     def getToy(self, search):
@@ -70,8 +71,8 @@ class SQL():
 
     def updateToy(self, Tinfo):
         with self.connections.cursor() as cur:
-            sqlQuery = "CALL UpdateToy(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-            cur.execute(sqlQuery, (Tinfo[0],Tinfo[1],Tinfo[2],Tinfo[3],Tinfo[4],Tinfo[5],Tinfo[6],Tinfo[7],Tinfo[8],)) 
+            sqlQuery = "CALL UpdateToy(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            cur.execute(sqlQuery, (Tinfo[0],Tinfo[1],Tinfo[2],Tinfo[3],Tinfo[4],Tinfo[5],Tinfo[6],Tinfo[7],Tinfo[8],Tinfo[9],)) 
         self.connections.commit()
 
     def delToy(self, tid):
@@ -80,10 +81,36 @@ class SQL():
             cur.execute(sqlQuery, (tid,)) 
         self.connections.commit()
 
-    def buyToy(self, email, tid, amount):
+    def buyToy(self, email, tid, amount, price):
         with self.connections.cursor() as cur:
-            sqlQuery = "CALL BuyToy(%s,%s,%s)"
-            cur.execute(sqlQuery, (email,tid,amount,)) 
+            sqlQuery = "CALL BuyToy(%s,%s,%s,%s)"
+            cur.execute(sqlQuery, (email,tid,amount,price,)) 
+        self.connections.commit()
+
+    def getHistory(self, email):
+        with self.connections.cursor() as cur:
+            sqlQuery = "SELECT bh.bid, buydate, td.`name`, bh.amount, bh.price\
+                        FROM accountdata, toydata AS td, buyhistory AS bh\
+                        WHERE (SELECT uid FROM accountdata WHERE email = %s) = bh.uid"
+            cur.execute(sqlQuery, (email,))
+            historylist = cur.fetchall()
+        self.connections.commit()
+        return historylist
+
+    def getUserDetail(self, email):
+        with self.connections.cursor() as cur:
+            sqlQuery = "SELECT ad.email, ud.`name`, ud.surname, ud.address, ud.tel\
+                        FROM accountdata AS ad, userdata AS ud\
+                        WHERE ad.email = %s"
+            cur.execute(sqlQuery, (email,))
+            UserDetail = cur.fetchone()
+        self.connections.commit()
+        return UserDetail
+
+    def updateUser(self, Uinfo):
+        with self.connections.cursor() as cur:
+            sqlQuery = "CALL UpdateUser(%s,%s,%s,%s,%s)"
+            cur.execute(sqlQuery, (Uinfo[0],Uinfo[1],Uinfo[2],Uinfo[3],Uinfo[4],)) 
         self.connections.commit()
 
     def reConnect(self):
@@ -163,9 +190,28 @@ class Functions():
         self.mySQL.delToy(tid)
         return 1
 
-    def buyToy(self,email,tid,amount):
+    def buyToy(self,email,tid,amount, price):
         self.reConnect()
-        self.mySQL.buyToy(email, tid, amount)
+        self.mySQL.buyToy(email, tid, amount, price)
+        return 1
+
+    def getHistory(self, email):
+        self.reConnect()
+        rawList = self.mySQL.getHistory(email)
+        outList = {}
+        for i in range(len(rawList)):
+            rawList[i]['buydate'] = rawList[i]['buydate'].strftime('%d/%m/%Y')
+            outList[str(rawList[i]['bid'])] = rawList[i]
+        return outList
+
+    def getUserDetail(self, email):
+        self.reConnect()
+        rawList = self.mySQL.getUserDetail(email)
+        return rawList
+
+    def updateUser(self, Uinfo):
+        self.reConnect()
+        self.mySQL.updateUser(Uinfo)
         return 1
 
     def reConnect(self):
@@ -285,7 +331,7 @@ def startApp():
     def logout():
         if request.method == 'GET':
             session.clear()
-            return redirect('/home', code=302)
+            return redirect('/home')
 
     @app.route('/product/<tid>', methods= ['GET', 'POST'])
     def product(tid):
@@ -299,8 +345,8 @@ def startApp():
                 isbuy = session['isbuy']
                 Func.reConnect()
             except:
-                isbuy = [False,0]
-            return render_template('product.html', isbuy=isbuy[0], amount=isbuy[1], ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
+                isbuy = [False,0, 0]
+            return render_template('product.html', isbuy=isbuy[0], amount=isbuy[1], price=isbuy[2], ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
 
         # if request.method == 'POST':
         if userdetail[0] == '0' and userdetail[1] == 0:
@@ -312,13 +358,39 @@ def startApp():
             if toyList[tid]['amount'] < amount:
                 return render_template('product.html', amounterror=True, ToyList = toyList[tid], title = toyList[tid]['name'], userdetail = userdetail)
             else:
-                Func.buyToy(userdetail[0], tid, amount)
-                session['isbuy'] = [True,amount]
+                price = float(toyList[tid]['price'])*amount
+                Func.buyToy(userdetail[0], tid, amount, price)
+                session['isbuy'] = [True, amount, price]
                 return redirect('/product/{0}'.format(tid),code=302)
 
         return redirect('/home')
             
-        
+    @app.route('/profile', methods = ['GET', 'POST'])
+    def profile():
+        try:
+            userdetail = session['userdetail']
+        except Exception:
+            userdetail = ['0',0]
+        if request.method == 'GET':
+            if userdetail[0] != '0' and userdetail[1] != 0:
+                buyhList = Func.getHistory(userdetail[0])
+                userprofile = Func.getUserDetail(userdetail[0])
+                print(userprofile)
+                return render_template('profile.html', buylist = buyhList, title = '{0} {1}'.format(userprofile['name'], userprofile['surname']), userprofile = userprofile , userdetail = userdetail)
+        if userdetail[0] != '0' and userdetail[1] != 0:
+            datalist = []
+            datalist.append(userdetail[0])
+            datalist.append(request.form['editName'])
+            datalist.append(request.form['editSurname'])
+            datalist.append(request.form['editAddress'])
+            datalist.append(request.form['editTel'])
+            Func.updateUser(datalist)
+
+            return redirect('/profile', code=302)
+
+        return redirect('/')
+
+
 
     # ADMIN
     @app.route('/stock', methods = ['GET', 'POST'])
@@ -347,6 +419,7 @@ def startApp():
             img = request.files['imgFile']
             imgread = img.read()
             Tinfo.append(imgread)
+            Tinfo.append(request.form['addDetail'])
             Func.addToy(Tinfo)
             return redirect('/stock')
         return redirect('/')
@@ -364,6 +437,7 @@ def startApp():
             Tinfo.append(request.form['editCollection'])
             Tinfo.append(request.form['editPrice'])
             Tinfo.append(request.form['editAmount'])
+            Tinfo.append(request.form['editDetail'])
             Func.updateToy(Tinfo)
             return redirect('/stock')
         return redirect('/')
@@ -403,4 +477,4 @@ def startApp():
 app = startApp()
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

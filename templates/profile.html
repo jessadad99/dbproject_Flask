@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block content %}
+        
+        <div class="container">
+            <div class="modal-header">
+                <h2>Profile <a href="" class="btn pull-right" data-toggle="modal" data-target="#editProfilePopup">Edit profile</a></h2>
+                <div class="row">                    
+                    <div class="col-sm-6"><label>Name: {{ userprofile['name'] + ' ' + userprofile['surname'] }}</label></div>
+                    <div class="col-sm-6"><label>Email: {{ userprofile['email'] }}</label></div>
+                </div>
+                <div class="row">                    
+                    <div class="col-sm-6"><label>Address: {{ userprofile['address'] }}</label></div>
+                    <div class="col-sm-6"><label>Tel: {{ userprofile['tel'] }}</label></div>
+                </div>
+            </div>
+            <div class="modal-header">
+                <h2>History</h2>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th class="col-sm-2">Date</th>
+                            <th class="col-sm-6">Product</th>
+                            <th class="col-sm-2">Amount</th>
+                            <th class="col-sm-2">Price</th>
+                        </tr>
+                    </thead>
+                    
+                    <tbody>
+                        {% for key,items in buylist.items() %}
+                        <tr>
+                            <td>{{ items['buydate'] }}</td>
+                            <td>{{ items['name'] }}</td>
+                            <td>{{ items['amount'] }}</td>
+                            <td>{{ '฿%.2f'%items['price'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>    
+        </div>
+
+        <!-- Edit profile popup -->
+        <div class="modal fade" id="editProfilePopup">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                        <div class="modal-header text-center">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h2>Edit profile</h2>
+                        </div>
+                        <!-- body -->
+                        <div class="modal-header">
+                            <form id="editProfileForm" role="form" action="/profile" method="POST">
+                                <div class="form-group">                                                 
+                                    <label>Name</label>
+                                    <div>
+                                        <div class="col-sm-6"><input name="editName" type="text" class="form-control" value="{{ userprofile['name'] }}"/></div>
+                                        <div class="col-sm-6"><input name="editSurname" type="text" class="form-control" value="{{ userprofile['surname'] }}"/></div>
+                                    </div>
+                                    <label>Address</label>
+                                    <input name="editAddress" type="text" class="form-control" value="{{ userprofile['address'] }}"/>
+                                    <label>Tel</label>
+                                    <input name="editTel" type="tel" class="form-control" value="{{ userprofile['tel'] }}"/>
+                                </div>
+                                
+                                <div><button id="editSubmit" type="submit" class="btn btn-primary btn-block">Save</button></div>
+                            </form>
+                        </div>
+                        <script>
+                                $('#editSubmit').on('click',function(){
+                                    $(this).val('Please wait ...')
+                                    .attr('disabled','disabled');
+                                    $('#editProfileForm').submit();
+                                });
+                        </script>
+                </div>
+            </div>
+        </div>
+
+
+{% endblock content %}

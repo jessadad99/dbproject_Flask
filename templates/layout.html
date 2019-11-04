@@ -54,7 +54,7 @@
                         <button class="btn btn-primary" data-toggle="modal" data-target="#popUpWindowLogin">Login</button>
                         <button class="btn btn-success" data-toggle="modal" data-target="#registerPopup">Register</button>
                     {% else %}
-                        <a><button class="btn btn-primary">{{ userdetail[0] }}</button></a>
+                        <a href="/profile"><button id="profilesubmit" class="btn btn-primary">{{ userdetail[0] }}</button></a>
                         <a href="/logout"><button class="btn btn-success">Logout</button></a>
                     {% endif %}
                 </div>
@@ -137,7 +137,6 @@
                             {% endif %}
                             <div class="form-group"><button id="loginsubmit" type="submit" class="btn btn-primary btn-block">Log In</button></div>
                         </form>
-                        <a href="" class="pull-right text-muted">Forgot password?</a>
                     </div>
                 </div>
             </div>
