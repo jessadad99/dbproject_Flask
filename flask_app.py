@@ -90,7 +90,7 @@ class SQL():
     def getHistory(self, email):
         with self.connections.cursor() as cur:
             sqlQuery = "SELECT bh.bid, buydate, td.`name`, bh.amount, bh.price\
-                        FROM accountdata, toydata AS td, buyhistory AS bh\
+                        FROM toydata AS td INNER JOIN buyhistory AS bh ON td.tid = bh.tid\
                         WHERE (SELECT uid FROM accountdata WHERE email = %s) = bh.uid"
             cur.execute(sqlQuery, (email,))
             historylist = cur.fetchall()
@@ -100,7 +100,7 @@ class SQL():
     def getUserDetail(self, email):
         with self.connections.cursor() as cur:
             sqlQuery = "SELECT ad.email, ud.`name`, ud.surname, ud.address, ud.tel\
-                        FROM accountdata AS ad, userdata AS ud\
+                        FROM accountdata AS ad INNER JOIN userdata AS ud ON ad.uid = ud.uid\
                         WHERE ad.email = %s"
             cur.execute(sqlQuery, (email,))
             UserDetail = cur.fetchone()
