@@ -320,12 +320,16 @@ def startApp():
     @app.route('/verify/<token>', methods = ['GET','POST'])
     def verifyToken(token):
         try:
+            userdetail = session['userdetail']
+        except Exception:
+            userdetail = ['0',0]
+        try:
             email = s.loads(token, salt='email-confirm', max_age=60)
         except Exception:
-            return render_template('verify.html', verify='invalid', title = 'verify')
+            return render_template('verify.html', verify='invalid', title = 'verify', userdetail = userdetail)
         
         Func.verifyMail(email)
-        return render_template('verify.html', verify='yes', title = 'verify')
+        return render_template('verify.html', verify='yes', title = 'verify', userdetail = userdetail)
 
     @app.route('/logout', methods = ['GET'])
     def logout():
