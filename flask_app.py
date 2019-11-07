@@ -225,7 +225,7 @@ class Functions():
 def startApp():
     app = Flask(__name__)
     app.config.from_pyfile('config.cfg')
-    app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=5)
+    app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=30)
     mail = Mail(app)
 
     s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
