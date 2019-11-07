@@ -463,9 +463,9 @@ def startApp():
         return 1
 
     def sendVerify(email, link):
-        msg = Message('Confirm Email', sender=('Carstore Service', "service@dbproject_carstore.com"), recipients=[email])
+        msg = Message('Confirm Email', sender=('The Tiger Toy', "service@dbproject_TheTigerToy.com"), recipients=[email])
 
-        assert msg.sender == "Carstore Service <service@dbproject_carstore.com>"
+        assert msg.sender == "The Tiger Toy <service@dbproject_TheTigerToy.com>"
 
         msg.body = 'Confirm Your Email'
 
