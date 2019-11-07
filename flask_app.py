@@ -63,7 +63,7 @@ class SQL():
     def getToy(self, search):
         search = '%{0}%'.format(search)
         with self.connections.cursor() as cur:
-            sqlQuery = "SELECT toydata.*, toyimage.image FROM toydata INNER JOIN toyimage WHERE toydata.tid LIKE %s or toydata.name LIKE %s or toydata.`from` LIKE %s"
+            sqlQuery = "SELECT toydata.*, toyimage.image FROM toydata INNER JOIN toyimage ON toydata.tid = toyimage.tid WHERE toydata.tid LIKE %s or toydata.name LIKE %s or toydata.`from` LIKE %s"
             cur.execute(sqlQuery, (search, search, search,))
             toylist = cur.fetchall()
         self.connections.commit()
