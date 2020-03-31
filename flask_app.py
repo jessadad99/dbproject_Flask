@@ -4,12 +4,14 @@ from itsdangerous import URLSafeTimedSerializer
 from datetime import timedelta
 from passlib.hash import sha256_crypt
 from base64 import b64encode
+from PIL import Image
 import datetime
 import secrets
 import pymysql
 import threading
 import schedule
 import time
+import io
 
 class SQL():
     def __init__(self):
@@ -420,9 +422,14 @@ def startApp():
             Tinfo.append(request.form['addCollection'])
             Tinfo.append(request.form['addPrice'])
             Tinfo.append(request.form['addAmount'])
-            img = request.files['imgFile']
-            imgread = img.read()
-            Tinfo.append(imgread)
+            image = request.files['imgFile']
+            stream = io.BytesIO()
+            myimg = Image.open(image)
+            myimg = myimg.resize((500, 500), Image.ANTIALIAS)
+            myimg.save(stream, format="PNG", optimize=True, quality=90)
+            imgread1 = stream.getvalue()
+            img = b64encode(imgread1).decode("utf-8")
+            Tinfo.append(img)
             Tinfo.append(request.form['addDetail'])
             Func.addToy(Tinfo)
             return redirect('/stock')
